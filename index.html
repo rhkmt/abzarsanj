@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ابزارسنج؛ با سه سؤال، نرم‌افزار مدیریت کار مناسبت را پیدا کن">
+  <title>ابزارسنج | انتخاب‌گر هوشمند نرم‌افزار</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+
+  <style>
+    /* ---------- ۱. رنگ‌ها (حالت روز) ---------- */
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --text: #1f2430;
+      --muted: #5d6577;
+      --primary: #5b4fe9;
+      --primary-soft: #ecebfd;
+      --on-primary: #ffffff;
+      --border: #e2e5ee;
+      --header-from: #5b4fe9;
+      --header-to: #8a4fe9;
+      --shadow: 0 8px 24px rgba(31, 36, 48, 0.08);
+      --radius: 16px;
+    }
+
+    /* ---------- ۲. رنگ‌ها (حالت شب) ---------- */
+    [data-theme="dark"] {
+      --bg: #12141c;
+      --surface: #1c1f2b;
+      --text: #eceef5;
+      --muted: #a3aabd;
+      --primary: #8b82ff;
+      --primary-soft: #2a2850;
+      --on-primary: #12141c;
+      --border: #2d3142;
+      --header-from: #3b3399;
+      --header-to: #5a2f99;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ---------- ۳. تنظیمات پایه ---------- */
+    * { box-sizing: border-box; }
+
+    /* بدون این خط، المان‌های hidden با display دیگر دوباره نمایش داده می‌شوند */
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ---------- ۴. هدر ---------- */
+    .site-header {
+      position: relative;
+      text-align: center;
+      padding: 2.5rem 1rem 3rem;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--header-from), var(--header-to));
+    }
+    .site-header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 800;
+    }
+    .tagline {
+      margin: 0.4rem 0 0;
+      opacity: 0.92;
+    }
+    #theme-toggle {
+      position: absolute;
+      top: 1rem;
+      inset-inline-end: 1rem;
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.2);
+      transition: transform 0.2s, background 0.2s;
+    }
+    #theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: rotate(15deg);
+    }
+
+    /* ---------- ۵. بدنه‌ی اصلی ---------- */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 640px;
+      margin: -1.5rem auto 0;
+      padding: 0 1rem 2rem;
+    }
+
+    /* ---------- ۶. نوار پیشرفت ---------- */
+    .progress {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+    #progress-text {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .progress-track {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 33.33%;
+      border-radius: 999px;
+      background: var(--primary);
+      transition: width 0.4s ease;
+    }
+
+    /* ---------- ۷. کارت سؤال‌ها ---------- */
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.25rem;
+      box-shadow: var(--shadow);
+      animation: fade-in 0.4s ease;
+    }
+    .step h2 {
+      margin: 0 0 1.2rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- ۸. دکمه‌های گزینه ---------- */
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.75rem;
+    }
+    .option {
+      min-height: 56px;
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .option:hover {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateY(-2px);
+    }
+    .option:active { transform: translateY(0); }
+    .option.selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      font-weight: 600;
+    }
+
+    /* ---------- ۹. کارت نتیجه ---------- */
+    #result-card {
+      text-align: center;
+      padding: 1.25rem 1rem;
+      margin-bottom: 1.25rem;
+      border-radius: 12px;
+      background: var(--primary-soft);
+    }
+    .result-icon { font-size: 2.8rem; line-height: 1.2; }
+    .result-name {
+      margin: 0.3rem 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .result-desc { margin: 0 0 0.8rem; color: var(--text); }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .tag {
+      padding: 0.15rem 0.8rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    #restart-btn {
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--on-primary);
+      background: var(--primary);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    #restart-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* ---------- ۱۰. فوتر ---------- */
+    .site-footer {
+      padding: 1.25rem 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    .site-footer p { margin: 0; }
+
+    /* ---------- ۱۱. دسترس‌پذیری ---------- */
+    :focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    /* ---------- ۱۲. ریسپانسیو ---------- */
+    @media (max-width: 480px) {
+      .site-header h1 { font-size: 1.8rem; }
+      .step { padding: 1.25rem 1rem; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <h1>ابزارسنج</h1>
+    <p class="tagline">با سه سؤال، نرم‌افزار مناسب کارت را پیدا کن</p>
+    <button id="theme-toggle" type="button" aria-label="تغییر حالت شب و روز">🌙</button>
+  </header>
+
+  <main>
+
+    <div class="progress" aria-live="polite">
+      <p id="progress-text">سؤال ۱ از ۳</p>
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill"></div>
+      </div>
+    </div>
+
+    <section id="step-1" class="step" aria-labelledby="q1-title">
+      <h2 id="q1-title">بیشتر روی چه دستگاهی کار می‌کنی؟</h2>
+      <div class="options">
+        <button type="button" class="option" data-question="platform" data-value="mobile">📱 موبایل</button>
+        <button type="button" class="option" data-question="platform" data-value="desktop">💻 کامپیوتر</button>
+        <button type="button" class="option" data-question="platform" data-value="web">🌐 مرورگر (وب)</button>
+      </div>
+    </section>
+
+    <section id="step-2" class="step" aria-labelledby="q2-title" hidden>
+      <h2 id="q2-title">بودجه‌ات چقدر است؟</h2>
+      <div class="options">
+        <button type="button" class="option" data-question="budget" data-value="free">🆓 فقط رایگان</button>
+        <button type="button" class="option" data-question="budget" data-value="paid">💳 می‌توانم هزینه کنم</button>
+      </div>
+    </section>
+
+    <section id="step-3" class="step" aria-labelledby="q3-title" hidden>
+      <h2 id="q3-title">کدام ویژگی برایت مهم‌تر است؟</h2>
+      <div class="options">
+        <button type="button" class="option" data-question="priority" data-value="simple">✨ سادگی</button>
+        <button type="button" class="option" data-question="priority" data-value="power">⚙️ امکانات زیاد</button>
+        <button type="button" class="option" data-question="priority" data-value="privacy">🔒 حریم خصوصی</button>
+      </div>
+    </section>
+
+    <section id="result" class="step" aria-live="polite" hidden>
+      <h2>پیشنهاد ما برای تو</h2>
+      <div id="result-card"></div>
+      <button id="restart-btn" type="button">🔄 شروع دوباره</button>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>ساخته‌شده توسط مریم · نمونه‌ی پروژه وبسایت تعاملی به دستور جناب آقای مهندس فرشاد</p>
+  </footer>
+
+  <noscript>برای استفاده از این سایت باید JavaScript مرورگرت فعال باشد.</noscript>
+  <noscript>...</noscript>
+
+  <script>
+   'use strict';
+
+/* ========== ۱. داده‌ها: لیست ابزارها ========== */
+// هر ابزار یک آبجکت است. امتیازدهی بر اساس همین فیلدها انجام می‌شود:
+// platforms: روی چه دستگاه‌هایی هست | free: رایگان قابل‌استفاده است؟
+// paidStrong: نسخه‌ی پولی‌اش ارزش اضافه‌ی بزرگی دارد؟ | strengths: نقاط قوت
+const TOOLS = [
+  {
+    name: 'Microsoft To Do', icon: '✅',
+    platforms: ['mobile', 'desktop', 'web'], free: true, paidStrong: false,
+    strengths: ['simple'],
+    desc: 'لیست کارهای روزانه با ظاهر تمیز و بدون پیچیدگی؛ برای شروع سریع عالی است.',
+    tags: ['رایگان', 'ساده', 'موبایل، کامپیوتر و وب']
+  },
+  {
+    name: 'Todoist', icon: '📝',
+    platforms: ['mobile', 'desktop', 'web'], free: true, paidStrong: true,
+    strengths: ['simple'],
+    desc: 'مدیریت کار ساده با افزودن سریع کار به زبان طبیعی و یادآوری؛ نسخه‌ی پولی امکانات بیشتری دارد.',
+    tags: ['ساده', 'یادآوری', 'موبایل، کامپیوتر و وب']
+  },
+  {
+    name: 'Trello', icon: '🗂️',
+    platforms: ['web', 'mobile'], free: true, paidStrong: false,
+    strengths: ['simple'],
+        bestOn: ['web'],
+    desc: 'تخته‌ی کانبان: کارها را به‌صورت کارت بین ستون‌های «انجام نشده»، «در حال انجام» و «انجام شد» جابه‌جا می‌کنی.',
+    tags: ['بصری', 'کارت و ستون', 'وب و موبایل']
+  },
+  {
+    name: 'Notion', icon: '🧩',
+    platforms: ['web', 'desktop', 'mobile'], free: true, paidStrong: true,
+    strengths: ['power'],
+    desc: 'فضای کاری همه‌کاره برای یادداشت، پایگاه‌داده و مدیریت پروژه؛ قدرتمند است اما یادگیری‌اش کمی زمان می‌برد.',
+    tags: ['انعطاف‌پذیر', 'امکانات زیاد', 'وب، کامپیوتر و موبایل']
+  },
+  {
+    name: 'ClickUp', icon: '🚀',
+    platforms: ['web', 'desktop', 'mobile'], free: true, paidStrong: true,
+    strengths: ['power'],
+        bestOn: ['web'],
+    desc: 'پلتفرم مدیریت پروژه با نماهای متنوع (لیست، تخته، تقویم) و امکانات فراوان برای کار تیمی.',
+    tags: ['کار تیمی', 'نماهای متنوع', 'وب، کامپیوتر و موبایل']
+  },
+  {
+    name: 'Obsidian', icon: '🔒',
+    platforms: ['desktop', 'mobile'], free: true, paidStrong: false,
+    strengths: ['privacy', 'power'],
+    desc: 'یادداشت‌ها و کارها را روی خود دستگاهت و به شکل فایل‌های متنی نگه می‌دارد؛ برای حریم خصوصی عالی است.',
+    tags: ['حریم خصوصی', 'ذخیره‌ی محلی', 'کامپیوتر و موبایل']
+  },
+  {
+    name: 'Joplin', icon: '🛡️',
+    platforms: ['desktop', 'mobile'], free: true, paidStrong: false,
+    strengths: ['privacy'],
+    bestOn: ['mobile'],
+    desc: 'برنامه‌ی متن‌باز یادداشت و لیست کار با امکان رمزگذاری سرتاسری هنگام همگام‌سازی.',
+    tags: ['متن‌باز', 'رمزگذاری', 'کامپیوتر و موبایل']
+  }
+];
+
+const PLATFORM_LABELS = { mobile: 'موبایل', desktop: 'کامپیوتر', web: 'مرورگر' };
+
+/* ========== ۲. وضعیت برنامه ========== */
+const TOTAL_STEPS = 3;
+const answers = {};      // جواب‌های کاربر، مثلاً { platform: 'web', budget: 'free' }
+let currentStep = 1;     // الان در کدام سؤال هستیم
+let locked = false;      // برای جلوگیری از دوبار کلیک پشت‌سرهم
+
+/* ========== ۳. پیدا کردن المان‌ها ========== */
+const progressText = document.getElementById('progress-text');
+const progressBar  = document.getElementById('progress-bar');
+const resultSection = document.getElementById('result');
+const resultCard   = document.getElementById('result-card');
+const restartBtn   = document.getElementById('restart-btn');
+const themeToggle  = document.getElementById('theme-toggle');
+
+/* ========== ۴. توابع کمکی ========== */
+function toFa(n) {
+  return n.toLocaleString('fa-IR'); // 1 -> ۱
+}
+
+function makeEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text) el.textContent = text; // عمداً textContent، نه innerHTML
+  return el;
+}
+
+// فوکوس روی عنوان بخش جدید، برای کاربران صفحه‌خوان و کیبورد
+function focusHeading(section) {
+  const h = section.querySelector('h2');
+  if (h) {
+    h.setAttribute('tabindex', '-1');
+    h.focus({ preventScroll: true });
+  }
+}
+
+/* ========== ۵. نمایش مراحل ========== */
+function updateProgress(step) {
+  progressText.textContent = 'سؤال ' + toFa(step) + ' از ' + toFa(TOTAL_STEPS);
+  progressBar.style.width = (step / TOTAL_STEPS * 100) + '%';
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(function (el) { el.hidden = true; });
+  const section = document.getElementById('step-' + n);
+  section.hidden = false;
+  updateProgress(n);
+  return section;
+}
+
+/* ========== ۶. منطق پیشنهاد (امتیازدهی) ========== */
+function pickTool(a) {
+  let best = null;
+  let bestScore = -Infinity;
+  TOOLS.forEach(function (tool) {
+    let score = 0;
+    if (tool.platforms.includes(a.platform)) score += 3;
+    if (a.budget === 'free') {
+      score += tool.free ? 3 : -10;
+    } else if (tool.paidStrong) {
+      score += 2;
+    }
+        if (tool.strengths.includes(a.priority)) {
+      score += 6; // اولویت کاربر مهم‌ترین عامل است
+      // امتیاز ویژه: ابزار روی همین دستگاه برتری دارد
+      if (tool.bestOn && tool.bestOn.includes(a.platform)) score += 2;
+    }
+    if (score > bestScore) { // علامت > (نه >=) یعنی در تساوی، ابزار اول لیست می‌ماند
+      best = tool;
+      bestScore = score;
+    }
+  });
+  return best;
+}
+
+function showResult() {
+  const tool = pickTool(answers);
+
+  resultCard.replaceChildren(); // خالی کردن کارت قبلی
+  resultCard.appendChild(makeEl('div', 'result-icon', tool.icon));
+  resultCard.appendChild(makeEl('h3', 'result-name', tool.name));
+  resultCard.appendChild(makeEl('p', 'result-desc', tool.desc));
+
+  const tagList = makeEl('div', 'tag-list');
+  tool.tags.forEach(function (t) { tagList.appendChild(makeEl('span', 'tag', t)); });
+  resultCard.appendChild(tagList);
+
+  // اگر ابزار روی دستگاه انتخابی نسخه نداشته باشد، صادقانه هشدار می‌دهیم
+  if (!tool.platforms.includes(answers.platform)) {
+    resultCard.appendChild(makeEl('p', 'result-desc',
+      '⚠️ این ابزار نسخه‌ی مستقیم برای «' + PLATFORM_LABELS[answers.platform] +
+      '» ندارد؛ نزدیک‌ترین گزینه به بقیه‌ی خواسته‌های توست.'));
+  }
+
+  resultCard.appendChild(makeEl('p', 'result-desc',
+    'امکانات و قیمت‌ها ممکن است تغییر کنند؛ قبل از تصمیم نهایی با تیم آیتن مشورت کن.'));
+
+  document.querySelectorAll('.step').forEach(function (el) { el.hidden = true; });
+  resultSection.hidden = false;
+  progressText.textContent = 'تمام شد 🎉';
+  progressBar.style.width = '100%';
+  focusHeading(resultSection);
+}
+
+/* ========== ۷. واکنش به کلیک روی گزینه‌ها ========== */
+function handleAnswer(btn) {
+  if (locked) return;
+  locked = true;
+
+  answers[btn.dataset.question] = btn.dataset.value;
+  btn.classList.add('selected'); // بازخورد بصری برای کاربر
+
+  // ۳۵۰ میلی‌ثانیه مکث تا کاربر انتخابش را ببیند
+  setTimeout(function () {
+    if (currentStep < TOTAL_STEPS) {
+      currentStep += 1;
+      focusHeading(showStep(currentStep));
+    } else {
+      showResult();
+    }
+    locked = false;
+  }, 350);
+}
+
+document.addEventListener('click', function (event) {
+  const btn = event.target.closest('.option');
+  if (btn) handleAnswer(btn);
+});
+
+/* ========== ۸. شروع دوباره ========== */
+restartBtn.addEventListener('click', function () {
+  Object.keys(answers).forEach(function (k) { delete answers[k]; });
+  document.querySelectorAll('.option.selected').forEach(function (el) {
+    el.classList.remove('selected');
+  });
+  resultSection.hidden = true;
+  currentStep = 1;
+  locked = false;
+  focusHeading(showStep(1));
+});
+
+/* ========== ۹. حالت شب ========== */
+function getSavedTheme() {
+  try { return localStorage.getItem('theme'); } catch (e) { return null; }
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = (theme === 'dark') ? '☀️' : '🌙';
+}
+
+themeToggle.addEventListener('click', function () {
+  const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('theme', next); } catch (e) { /* مرورگر اجازه نداد؛ مشکلی نیست */ }
+});
+
+// تنظیم اولیه: انتخاب قبلی کاربر، وگرنه تنظیم خود دستگاه
+const startTheme = getSavedTheme() ||
+  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(startTheme);
+  </script>
+
+</body>
+</html>
+</body>
+</html>
